@@ -1,0 +1,150 @@
+===== CONTACT BOOK =====
+1. Add Contact
+2. View Contacts
+3. Search Contact
+4. Edit Contact
+5. Delete Contact
+6. Exit
+Enter choice: 1
+
+--- Add Contact ---
+Enter name: Alex
+Enter phone number: 7894561230
+Enter email: alex@gmail.com
+Name, phone, or email already exists.
+
+===== CONTACT BOOK =====
+1. Add Contact
+2. View Contacts
+3. Search Contact
+4. Edit Contact
+5. Delete Contact
+6. Exit
+Enter choice: 1
+
+--- Add Contact ---
+Enter name: Derek
+Enter phone number: 1236547890
+Enter email: derek@gmail.com
+Contact added successfully!
+
+===== CONTACT BOOK =====
+1. Add Contact
+2. View Contacts
+3. Search Contact
+4. Edit Contact
+5. Delete Contact
+6. Exit
+Enter choice: 2
+
+--- Contact List ---
+-----------------------------------
+ID    : 1
+Name  : Alex
+Phone : 7894561230
+Email : alex@gmail.com
+-----------------------------------
+ID    : 2
+Name  : Derek
+Phone : 1236547890
+Email : derek@gmail.com
+
+===== CONTACT BOOK =====
+1. Add Contact
+2. View Contacts
+3. Search Contact
+4. Edit Contact
+5. Delete Contact
+6. Exit
+Enter choice: 3
+
+1. Search by name
+2. Search by phone
+Choose: 1
+Enter name to search: Alex
+-----------------------------------
+ID    : 1
+Name  : Alex
+Phone : 7894561230
+Email : alex@gmail.com
+
+===== CONTACT BOOK =====
+1. Add Contact
+2. View Contacts
+3. Search Contact
+4. Edit Contact
+5. Delete Contact
+6. Exit
+Enter choice: 4
+
+--- Contact List ---
+-----------------------------------
+ID    : 1
+Name  : Alex
+Phone : 7894561230
+Email : alex@gmail.com
+-----------------------------------
+ID    : 2
+Name  : Derek
+Phone : 1236547890
+Email : derek@gmail.com
+Enter contact ID to edit: 1
+
+1. Edit name
+2. Edit phone
+3. Edit email
+4. Edit all details
+Choose what to edit: 1
+Enter new name: Alex1
+Contact updated successfully!
+
+===== CONTACT BOOK =====
+1. Add Contact
+2. View Contacts
+3. Search Contact
+4. Edit Contact
+5. Delete Contact
+6. Exit
+Enter choice: 5
+
+--- Contact List ---
+-----------------------------------
+ID    : 1
+Name  : Alex1
+Phone : 7894561230
+Email : alex@gmail.com
+-----------------------------------
+ID    : 2
+Name  : Derek
+Phone : 1236547890
+Email : derek@gmail.com
+Enter contact ID to delete: 1
+Selected contact: Alex1 - 7894561230
+Confirm deletion? (yes/no): yes
+Contact deleted successfully!
+
+===== CONTACT BOOK =====
+1. Add Contact
+2. View Contacts
+3. Search Contact
+4. Edit Contact
+5. Delete Contact
+6. Exit
+Enter choice: 2
+
+--- Contact List ---
+-----------------------------------
+ID    : 1
+Name  : Derek
+Phone : 1236547890
+Email : derek@gmail.com
+
+===== CONTACT BOOK =====
+1. Add Contact
+2. View Contacts
+3. Search Contact
+4. Edit Contact
+5. Delete Contact
+6. Exit
+Enter choice: 6
+Contacts saved. Goodbye!

@@ -1,307 +1,250 @@
-import mysql.connector
-from mysql.connector import Error
+
+def load_contacts():
+    contacts = []
+
+    try:
+        with open("contacts.txt", "r") as file:
+            for line in file:
+                parts = line.strip().split("|")
+
+                if len(parts) == 3:
+                    contacts.append({
+                        "name": parts[0],
+                        "phone": parts[1],
+                        "email": parts[2]
+                    })
+    except FileNotFoundError:
+        with open("contacts.txt", "w") as file:
+            pass
+
+    return contacts
 
 
-class Contact:
-    """Represents one contact."""
-
-    def __init__(self, name, phone, email, contact_id=None):
-        self.contact_id = contact_id
-        self.name = name
-        self.phone = phone
-        self.email = email
-
-    def display(self):
-        print("-" * 40)
-        print("ID    :", self.contact_id)
-        print("Name  :", self.name)
-        print("Phone :", self.phone)
-        print("Email :", self.email)
-
-
-class ContactBook:
-    """Manages contacts and MySQL database operations."""
-
-    def __init__(self):
-        self.db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="Gowri@123",
-            database="contact_book_db"
-        )
-        self.cursor = self.db.cursor()
-
-    @staticmethod
-    def get_valid_contact_details():
-        name = input("Enter name: ").strip()
-        phone = input("Enter phone number: ").strip()
-        email = input("Enter email: ").strip()
-
-        if not name or not phone or not email:
-            print("All fields are required.")
-            return None
-
-        if len(phone) != 10 or not phone.isdigit():
-            print("Phone number must contain exactly 10 digits.")
-            return None
-
-        if "@" not in email or "." not in email:
-            print("Enter a valid-looking email address.")
-            return None
-
-        return name, phone, email
-
-    def add_contact(self):
-        print("\n--- Add Contact ---")
-        details = self.get_valid_contact_details()
-
-        if details is None:
-            return
-
-        try:
-            query = (
-                "INSERT INTO contacts (name, phone, email) "
-                "VALUES (%s, %s, %s)"
+def save_contacts(contacts):
+    with open("contacts.txt", "w") as file:
+        for contact in contacts:
+            file.write(
+                contact["name"] + "|" +
+                contact["phone"] + "|" +
+                contact["email"] + "\n"
             )
-            self.cursor.execute(query, details)
-            self.db.commit()
-            print("Contact added successfully!")
 
-        except Error as error:
-            self.db.rollback()
-            if error.errno == 1062:
-                print("Name, phone, or email already exists.")
-            else:
-                print("Could not add contact:", error)
 
-    def view_contacts(self):
-        self.cursor.execute(
-            "SELECT contact_id, name, phone, email "
-            "FROM contacts ORDER BY contact_id"
-        )
-        rows = self.cursor.fetchall()
+def get_contact_details():
+    name = input("Enter name: ").strip()
+    phone = input("Enter phone number: ").strip()
+    email = input("Enter email: ").strip()
 
-        print("\n--- Contact List ---")
-        if not rows:
-            print("No contacts found.")
+    if not name or not phone or not email:
+        print("All fields are required.")
+        return None
+
+    if "|" in name or "|" in phone or "|" in email:
+        print("The | character is not allowed.")
+        return None
+
+    if len(phone) != 10 or not phone.isdigit():
+        print("Phone number must contain exactly 10 digits.")
+        return None
+
+    if "@" not in email or "." not in email:
+        print("Enter a valid-looking email address.")
+        return None
+
+    return {"name": name, "phone": phone, "email": email}
+
+
+def add_contact(contacts):
+    print("\n--- Add Contact ---")
+    contact = get_contact_details()
+
+    if contact is None:
+        return
+
+    for existing in contacts:
+        if (existing["name"].lower() == contact["name"].lower()
+                or existing["phone"] == contact["phone"]
+                or existing["email"].lower() == contact["email"].lower()):
+            print("Name, phone, or email already exists.")
             return
 
-        for row in rows:
-            contact = Contact(row[1], row[2], row[3], row[0])
-            contact.display()
+    contacts.append(contact)
+    save_contacts(contacts)
+    print("Contact added successfully!")
 
-    def search_contact(self):
-        print("\n1. Search by name")
-        print("2. Search by phone")
-        choice = input("Choose: ").strip()
 
-        if choice == "1":
-            value = input("Enter name to search: ").strip()
-            query = (
-                "SELECT contact_id, name, phone, email FROM contacts "
-                "WHERE name LIKE %s ORDER BY contact_id"
-            )
-            parameter = ("%" + value + "%",)
+def view_contacts(contacts):
+    print("\n--- Contact List ---")
 
-        elif choice == "2":
-            value = input("Enter phone number to search: ").strip()
-            query = (
-                "SELECT contact_id, name, phone, email FROM contacts "
-                "WHERE phone LIKE %s ORDER BY contact_id"
-            )
-            parameter = ("%" + value + "%",)
+    if not contacts:
+        print("No contacts found.")
+        return
 
-        else:
-            print("Invalid choice.")
+    for index, contact in enumerate(contacts, start=1):
+        print("-" * 35)
+        print("ID    :", index)
+        print("Name  :", contact["name"])
+        print("Phone :", contact["phone"])
+        print("Email :", contact["email"])
+
+
+def search_contact(contacts):
+    print("\n1. Search by name")
+    print("2. Search by phone")
+    choice = input("Choose: ").strip()
+
+    if choice == "1":
+        field = "name"
+        value = input("Enter name to search: ").strip().lower()
+    elif choice == "2":
+        field = "phone"
+        value = input("Enter phone to search: ").strip()
+    else:
+        print("Invalid choice.")
+        return
+
+    if not value:
+        print("Search value cannot be empty.")
+        return
+
+    found = False
+
+    for index, contact in enumerate(contacts, start=1):
+        if value in contact[field].lower():
+            print("-" * 35)
+            print("ID    :", index)
+            print("Name  :", contact["name"])
+            print("Phone :", contact["phone"])
+            print("Email :", contact["email"])
+            found = True
+
+    if not found:
+        print("Contact not found.")
+
+
+def edit_contact(contacts):
+    view_contacts(contacts)
+
+    if not contacts:
+        return
+
+    try:
+        contact_id = int(input("Enter contact ID to edit: "))
+        if contact_id < 1 or contact_id > len(contacts):
+            print("Invalid contact ID.")
             return
+    except ValueError:
+        print("Enter a valid numeric ID.")
+        return
 
-        if not value:
-            print("Search value cannot be empty.")
+    contact = contacts[contact_id - 1]
+
+    print("\n1. Edit name")
+    print("2. Edit phone")
+    print("3. Edit email")
+    print("4. Edit all details")
+    choice = input("Choose what to edit: ").strip()
+
+    if choice == "1":
+        value = input("Enter new name: ").strip()
+        if not value or "|" in value:
+            print("Invalid name.")
             return
+        contact["name"] = value
 
-        self.cursor.execute(query, parameter)
-        rows = self.cursor.fetchall()
-
-        if not rows:
-            print("Contact not found.")
+    elif choice == "2":
+        value = input("Enter new phone: ").strip()
+        if len(value) != 10 or not value.isdigit():
+            print("Phone must contain exactly 10 digits.")
             return
+        contact["phone"] = value
 
-        for row in rows:
-            Contact(row[1], row[2], row[3], row[0]).display()
-
-    def edit_contact(self):
-        try:
-            contact_id = int(input("Enter contact ID to edit: "))
-            if contact_id <= 0:
-                print("ID must be positive.")
-                return
-        except ValueError:
-            print("Enter a valid numeric ID.")
+    elif choice == "3":
+        value = input("Enter new email: ").strip()
+        if "@" not in value or "." not in value or "|" in value:
+            print("Enter a valid-looking email.")
             return
+        contact["email"] = value
 
-        self.cursor.execute(
-            "SELECT contact_id, name, phone, email "
-            "FROM contacts WHERE contact_id = %s",
-            (contact_id,)
-        )
-        row = self.cursor.fetchone()
-
-        if row is None:
-            print("Contact not found.")
+    elif choice == "4":
+        updated = get_contact_details()
+        if updated is None:
             return
+        contact.update(updated)
 
-        contact = Contact(row[1], row[2], row[3], row[0])
-        contact.display()
+    else:
+        print("Invalid choice.")
+        return
 
-        print("\nWhat do you want to edit?")
-        print("1. Name")
-        print("2. Phone")
-        print("3. Email")
-        print("4. All details")
-        choice = input("Choose an option: ").strip()
-
-        try:
-            if choice == "1":
-                value = input("Enter new name: ").strip()
-                if not value:
-                    print("Name cannot be empty.")
-                    return
-
-                query = "UPDATE contacts SET name = %s WHERE contact_id = %s"
-                values = (value, contact_id)
-
-            elif choice == "2":
-                value = input("Enter new phone number: ").strip()
-                if len(value) != 10 or not value.isdigit():
-                    print("Phone number must contain exactly 10 digits.")
-                    return
-
-                query = "UPDATE contacts SET phone = %s WHERE contact_id = %s"
-                values = (value, contact_id)
-
-            elif choice == "3":
-                value = input("Enter new email: ").strip()
-                if "@" not in value or "." not in value:
-                    print("Enter a valid-looking email address.")
-                    return
-
-                query = "UPDATE contacts SET email = %s WHERE contact_id = %s"
-                values = (value, contact_id)
-
-            elif choice == "4":
-                details = self.get_valid_contact_details()
-                if details is None:
-                    return
-
-                query = (
-                    "UPDATE contacts SET name = %s, phone = %s, email = %s "
-                    "WHERE contact_id = %s"
-                )
-                values = details + (contact_id,)
-
-            else:
-                print("Invalid choice.")
+    for index, other in enumerate(contacts):
+        if index != contact_id - 1:
+            if (other["name"].lower() == contact["name"].lower()
+                    or other["phone"] == contact["phone"]
+                    or other["email"].lower() == contact["email"].lower()):
+                print("Another contact already uses those details.")
                 return
 
-            self.cursor.execute(query, values)
-            self.db.commit()
+    save_contacts(contacts)
+    print("Contact updated successfully!")
 
-            if self.cursor.rowcount == 0:
-                print("No changes made.")
-            else:
-                print("Contact updated successfully!")
 
-        except Error as error:
-            self.db.rollback()
-            if error.errno == 1062:
-                print("That name, phone, or email already belongs to another contact.")
-            else:
-                print("Could not update contact:", error)
+def delete_contact(contacts):
+    view_contacts(contacts)
 
-    def delete_contact(self):
-        try:
-            contact_id = int(input("Enter contact ID to delete: "))
-            if contact_id <= 0:
-                print("ID must be positive.")
-                return
-        except ValueError:
-            print("Enter a valid numeric ID.")
+    if not contacts:
+        return
+
+    try:
+        contact_id = int(input("Enter contact ID to delete: "))
+        if contact_id < 1 or contact_id > len(contacts):
+            print("Invalid contact ID.")
             return
+    except ValueError:
+        print("Enter a valid numeric ID.")
+        return
 
-        self.cursor.execute(
-            "SELECT contact_id, name, phone, email "
-            "FROM contacts WHERE contact_id = %s",
-            (contact_id,)
-        )
-        row = self.cursor.fetchone()
+    contact = contacts[contact_id - 1]
+    print("Selected contact:", contact["name"], "-", contact["phone"])
 
-        if row is None:
-            print("Contact not found.")
-            return
+    confirm = input("Confirm deletion? (yes/no): ").strip().lower()
 
-        Contact(row[1], row[2], row[3], row[0]).display()
-        confirm = input("Are you sure you want to delete this contact? (yes/no): ")
-        if confirm.strip().lower() != "yes":
-            print("Deletion cancelled.")
-            return
-
-        try:
-            self.cursor.execute(
-                "DELETE FROM contacts WHERE contact_id = %s",
-                (contact_id,)
-            )
-            self.db.commit()
-            print("Contact deleted successfully!")
-
-        except Error as error:
-            self.db.rollback()
-            print("Could not delete contact:", error)
-
-    def close(self):
-        self.cursor.close()
-        self.db.close()
+    if confirm == "yes":
+        contacts.pop(contact_id - 1)
+        save_contacts(contacts)
+        print("Contact deleted successfully!")
+    else:
+        print("Deletion cancelled.")
 
 
 def main():
-    book = None
+    contacts = load_contacts()
 
-    try:
-        book = ContactBook()
-        print("Connected to the Contact Book database.")
+    while True:
+        print("\n===== CONTACT BOOK =====")
+        print("1. Add Contact")
+        print("2. View Contacts")
+        print("3. Search Contact")
+        print("4. Edit Contact")
+        print("5. Delete Contact")
+        print("6. Exit")
 
-        while True:
-            print("\n===== CONTACT BOOK =====")
-            print("1. Add Contact")
-            print("2. View Contacts")
-            print("3. Search Contact")
-            print("4. Edit Contact")
-            print("5. Delete Contact")
-            print("6. Exit")
+        choice = input("Enter choice: ").strip()
 
-            choice = input("Enter choice: ").strip()
-
-            if choice == "1":
-                book.add_contact()
-            elif choice == "2":
-                book.view_contacts()
-            elif choice == "3":
-                book.search_contact()
-            elif choice == "4":
-                book.edit_contact()
-            elif choice == "5":
-                book.delete_contact()
-            elif choice == "6":
-                print("Goodbye!")
-                break
-            else:
-                print("Invalid choice. Select 1 to 6.")
-
-    except Error as error:
-        print("MySQL connection or database error:", error)
-
-    finally:
-        if book is not None:
-            book.close()
+        if choice == "1":
+            add_contact(contacts)
+        elif choice == "2":
+            view_contacts(contacts)
+        elif choice == "3":
+            search_contact(contacts)
+        elif choice == "4":
+            edit_contact(contacts)
+        elif choice == "5":
+            delete_contact(contacts)
+        elif choice == "6":
+            print("Contacts saved. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Select 1 to 6.")
 
 
 if __name__ == "__main__":
